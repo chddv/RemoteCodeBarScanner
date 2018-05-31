@@ -15,7 +15,7 @@ class RCBSRequestHandler(BaseHTTPRequestHandler):
             mimetype='image/jpg'
         if file_path.endswith(".gif"):
             mimetype='image/gif'
-        if file_path.endswith(".js"):
+        if file_path.endswith(".js"): 
             mimetype='application/javascript'
         if file_path.endswith(".css"):
             mimetype='text/css'
