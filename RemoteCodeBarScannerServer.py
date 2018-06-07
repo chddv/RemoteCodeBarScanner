@@ -2,11 +2,36 @@ from http.server import BaseHTTPRequestHandler
 from urllib import parse
 from os import curdir, path, sep
 #from io
+import pyzbar.pyzbar as pyzbar
+#import numpy as np
+import cv2
+import keyboard
+import json
+
+# library ZBar BarCode Reader http://zbar.sourceforge.net/download.html
+# https://www.learnopencv.com/barcode-and-qr-code-scanner-using-zbar-and-opencv/
+# https://pypi.org/project/zbar-py/
+
+#library Keyboard https://pypi.org/project/keyboard/
+
 
 class RCBSRequestHandler(BaseHTTPRequestHandler):
 
+    srvIP = ''
+    srvPort = ''
+
+    def SetServerInfo(self, ip, port):
+        srvIP = ip
+        srvPort = port
+
+    def do_Redirect(self, url):
+        self.send_response(307)
+        self.send_header('Location', url)
+        self.end_headers()
+
     def do_GetPublic(self,html_path):
         file_path = curdir+sep+html_path
+        print('File Not Found ' + file_path)
 
         # set mime type for return
         if file_path.endswith(".html"):
@@ -30,20 +55,35 @@ class RCBSRequestHandler(BaseHTTPRequestHandler):
             f.close()
             return 
         # send error 404 if file not found
+        print('File Not Found ' + html_path)
         self.send_error(404,'File Not Found: %s' % html_path)
 
+    def do_GetAPI(self, msg):
+        print(msg)
+        keyboard.write(msg) #echo on keyboard (test of keyboard library)
+        #echo on client web as json file 
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        jsonStr = json.dumps({'msg': msg})
+        jsonByte = jsonStr.encode()
+        self.wfile.write(jsonByte) 
 
     def do_GET(self):
         print('do_Get: '+self.path)
         parsed_path = parse.urlparse(self.path)
         splited_path = parsed_path.path.rsplit('/')
-        if len(splited_path) >= 1:
-            if(splited_path[1] == 'public'): # share only public files
+        print(splited_path)
+        print(len(splited_path))
+        if len(splited_path) >= 2: 
+            if((splited_path[1] == 'public') and (splited_path[2] != '')): # share only public files
                 self.do_GetPublic(parsed_path.path)
+            elif((splited_path[1] == 'api') and (splited_path[2] != '')):
+                self.do_GetAPI(splited_path[2])
             else:
-                self.do_GetPublic("public/index.html")
+                self.do_Redirect('/public/index.html')
         else:
-            self.do_GetPublic("public/index.html")
+            self.do_GetPublic('/public/index.html')
 
 '''
         message_parts = [
@@ -79,6 +119,28 @@ class RCBSRequestHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     from http.server import HTTPServer
-    server = HTTPServer(('localhost', 8080), RCBSRequestHandler)
+    srvIP = 'localhost'
+    srvPort = 8080
+    server = HTTPServer((srvIP, srvPort), RCBSRequestHandler)
+    server.RequestHandlerClass.SetServerInfo(server.RequestHandlerClass, srvIP, srvPort)
     print('Starting server, use <Ctrl-C> to stop')
     server.serve_forever()
+
+'''
+#sample decode BarCode: 
+def decode(im) : 
+  # Find barcodes and QR codes
+  decodedObjects = pyzbar.decode(im)
+ 
+  # Print results
+  for obj in decodedObjects:
+    print('Type : ', obj.type)
+    print('Data : ', obj.data,'\n')
+     
+  return decodedObjects
+
+if __name__ == '__main__':
+    im = cv2.imread("./img/sample001.jpg") #, cv2.IMREAD_GRAYSCALE)
+    if(im is not None):
+        decodedObjects = decode(im)
+'''

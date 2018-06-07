@@ -18,6 +18,7 @@
     var canvas = null;
     var photo = null;
     var startbutton = null;
+    var dvLog = null;
   
 /*
 // Older browsers might not implement mediaDevices at all, so we set an empty object first
@@ -66,14 +67,25 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: true })
 });
 */
 
+    function log(msg)
+    {
+      var brnode = document.createElement('BR');
+      dvLog.appendChild(brnode);
+      var textnode = document.createTextNode(msg); 
+      dvLog.appendChild(textnode);
+      console.log(msg);
+    }
 
     function startup() {
+      dvLog = document.getElementById('dvLog');
+      log("startup");
       video = document.getElementById('video');
       //var video = document.querySelector('video');
       canvas = document.getElementById('canvas');
       photo = document.getElementById('photo');
       startbutton = document.getElementById('startbutton');
-  
+      imgTest = document.getElementById('imgTest');
+
       // Older browsers might not implement mediaDevices at all, so we set an empty object first
       if (navigator.mediaDevices === undefined) {
         navigator.mediaDevices = {};
@@ -91,7 +103,7 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: true })
           // Some browsers just don't implement it - return a rejected promise with an error
           // to keep a consistent interface
           if (!getUserMedia) {
-            return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+            return Promise.reject(log('getUserMedia is not implemented in this browser')); //new Error(
           }
 
           // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
@@ -101,7 +113,7 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         }
       }
 
-      navigator.mediaDevices.getUserMedia({ video: true })
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(function(stream) {
         // Older browsers may not have srcObject
         if ("srcObject" in video) {
@@ -135,7 +147,7 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: true })
 
       })
       .catch(function(err) {
-        console.log(err.name + ": " + err.message);
+        log(err.name + ": " + err.message);
       });
 
 
@@ -187,7 +199,10 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: true })
       */
   
       startbutton.addEventListener('click', function(ev){
-        takepicture();
+        //takepicture();
+        log('on click capture');
+        takepicturedemo();
+
         ev.preventDefault();
       }, false);
       
@@ -206,6 +221,23 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: true })
       photo.setAttribute('src', data);
     }
     
+    function takepicturedemo(){
+      log('takepicturedemo');
+      var img = new Image();   // Crée un nouvel élément img
+      img.onload = function() {
+        log('onload takepicturedemo');
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, 150, 150);
+        var data = canvas.toDataURL('image/png');
+        photo.setAttribute('src', data);
+      };
+      img.onerror = function()
+      {
+        log('onerror takepicturedemo');
+      };
+      img.src = '/public/sample01.jpg';
+    }
+
     // Capture a photo by fetching the current contents of the video
     // and drawing it into a canvas, then converting that to a PNG
     // format data URL. By drawing it on an offscreen canvas and then
