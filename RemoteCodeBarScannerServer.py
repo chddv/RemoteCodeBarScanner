@@ -31,7 +31,7 @@ class RCBSRequestHandler(BaseHTTPRequestHandler):
 
     def do_GetPublic(self,html_path):
         file_path = curdir+sep+html_path
-        print('File Not Found ' + file_path)
+        print('do_GetPublic ' + file_path)
 
         # set mime type for return
         if file_path.endswith(".html"):
@@ -54,9 +54,9 @@ class RCBSRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(f.read())
             f.close()
             return 
-        # send error 404 if file not found
-        print('File Not Found ' + html_path)
-        self.send_error(404,'File Not Found: %s' % html_path)
+        else: # send error 404 if file not found
+            print('File Not Found ' + html_path)
+            self.send_error(404,'File Not Found: %s' % html_path)
 
     def do_GetAPI(self, msg):
         print(msg)

@@ -1,264 +1,121 @@
-(function() {
-    // The width and height of the captured photo. We will set the
-    // width to the value defined here, but the height will be
-    // calculated based on the aspect ratio of the input stream.
-  
-    var width = 320;    // We will scale the photo width to this
-    var height = 0;     // This will be computed based on the input stream
-  
-    // |streaming| indicates whether or not we're currently streaming
-    // video from the camera. Obviously, we start at false.
-  
-    var streaming = false;
-  
-    // The various HTML elements we need to configure or control. These
-    // will be set by the startup() function.
-  
-    var video = null;
-    var canvas = null;
-    var photo = null;
-    var startbutton = null;
-    var dvLog = null;
-  
-/*
-// Older browsers might not implement mediaDevices at all, so we set an empty object first
-if (navigator.mediaDevices === undefined) {
-  navigator.mediaDevices = {};
-}
-
-// Some browsers partially implement mediaDevices. We can't just assign an object
-// with getUserMedia as it would overwrite existing properties.
-// Here, we will just add the getUserMedia property if it's missing.
-if (navigator.mediaDevices.getUserMedia === undefined) {
-  navigator.mediaDevices.getUserMedia = function(constraints) {
-
-    // First get ahold of the legacy getUserMedia, if present
-    var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-    // Some browsers just don't implement it - return a rejected promise with an error
-    // to keep a consistent interface
-    if (!getUserMedia) {
-      return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
-    }
-
-    // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
-    return new Promise(function(resolve, reject) {
-      getUserMedia.call(navigator, constraints, resolve, reject);
-    });
-  }
-}
-
-navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-.then(function(stream) {
-  var video = document.querySelector('video');
-  // Older browsers may not have srcObject
-  if ("srcObject" in video) {
-    video.srcObject = stream;
-  } else {
-    // Avoid using this in new browsers, as it is going away.
-    video.src = window.URL.createObjectURL(stream);
-  }
-  video.onloadedmetadata = function(e) {
-    video.play();
-  };
-})
-.catch(function(err) {
-  console.log(err.name + ": " + err.message);
-});
-*/
+(
+  function()
+  {
 
     function log(msg)
     {
       var brnode = document.createElement('BR');
-      dvLog.appendChild(brnode);
+      dvLog.insertBefore(brnode, dvLog.childNodes[0]);
       var textnode = document.createTextNode(msg); 
-      dvLog.appendChild(textnode);
+      dvLog.insertBefore(textnode, dvLog.childNodes[0]);
       console.log(msg);
     }
 
-    function startup() {
-      dvLog = document.getElementById('dvLog');
-      log("startup");
-      video = document.getElementById('video');
-      //var video = document.querySelector('video');
-      canvas = document.getElementById('canvas');
-      photo = document.getElementById('photo');
-      startbutton = document.getElementById('startbutton');
-      imgTest = document.getElementById('imgTest');
-
-      // Older browsers might not implement mediaDevices at all, so we set an empty object first
-      if (navigator.mediaDevices === undefined) {
-        navigator.mediaDevices = {};
-      }
-
-      // Some browsers partially implement mediaDevices. We can't just assign an object
-      // with getUserMedia as it would overwrite existing properties.
-      // Here, we will just add the getUserMedia property if it's missing.
-      if (navigator.mediaDevices.getUserMedia === undefined) {
-        navigator.mediaDevices.getUserMedia = function(constraints) {
-
-          // First get ahold of the legacy getUserMedia, if present
-          var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-          // Some browsers just don't implement it - return a rejected promise with an error
-          // to keep a consistent interface
-          if (!getUserMedia) {
-            return Promise.reject(log('getUserMedia is not implemented in this browser')); //new Error(
-          }
-
-          // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
-          return new Promise(function(resolve, reject) {
-            getUserMedia.call(navigator, constraints, resolve, reject);
-          });
-        }
-      }
-
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(function(stream) {
-        // Older browsers may not have srcObject
-        if ("srcObject" in video) {
-          video.srcObject = stream;
-        } else {
-          // Avoid using this in new browsers, as it is going away.
-          video.src = window.URL.createObjectURL(stream);
-        }
-        video.onloadedmetadata = function(e) {
-          video.play();
-        };
-
-        video.addEventListener('canplay', function(ev){
-          if (!streaming) {
-            height = video.videoHeight / (video.videoWidth/width);
-          
-            // Firefox currently has a bug where the height can't be read from
-            // the video, so we will make assumptions if this happens.
-          
-            if (isNaN(height)) {
-              height = width / (4/3);
-            }
-          
-            video.setAttribute('width', width);
-            video.setAttribute('height', height);
-            canvas.setAttribute('width', width);
-            canvas.setAttribute('height', height);
-            streaming = true;
-          }
-        }, false);
-
-      })
-      .catch(function(err) {
-        log(err.name + ": " + err.message);
-      });
-
-
-
-/*
-      navigator.getMedia = ( navigator.mediaDevices.getUserMedia ||
-                             navigator.getUserMedia ||
-                             navigator.webkitGetUserMedia ||
-                             navigator.mozGetUserMedia ||
-                             navigator.msGetUserMedia);
-  
-      navigator.getMedia(
-        {
-          video: true,
-          audio: false
-        },
-        function(stream) {
-          if (navigator.mozGetUserMedia) {
-            video.mozSrcObject = stream;
-          } else {
-            var vendorURL = window.URL || window.webkitURL;
-            video.src = vendorURL.createObjectURL(stream);
-          }
-          video.play();
-        },
-        function(err) {
-          console.log("getMedia error occured! " + err);
-        }
-      );
-  
-      video.addEventListener('canplay', function(ev){
-        if (!streaming) {
-          height = video.videoHeight / (video.videoWidth/width);
-        
-          // Firefox currently has a bug where the height can't be read from
-          // the video, so we will make assumptions if this happens.
-        
-          if (isNaN(height)) {
-            height = width / (4/3);
-          }
-        
-          video.setAttribute('width', width);
-          video.setAttribute('height', height);
-          canvas.setAttribute('width', width);
-          canvas.setAttribute('height', height);
-          streaming = true;
-        }
-      }, false);
-      */
-  
-      startbutton.addEventListener('click', function(ev){
-        //takepicture();
-        log('on click capture');
-        takepicturedemo();
-
-        ev.preventDefault();
-      }, false);
-      
-      clearphoto();
-    }
-  
-    // Fill the photo with an indication that none has been
-    // captured.
-  
-    function clearphoto() {
-      var context = canvas.getContext('2d');
-      context.fillStyle = "#AAA";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-  
-      var data = canvas.toDataURL('image/png');
-      photo.setAttribute('src', data);
-    }
-    
-    function takepicturedemo(){
-      log('takepicturedemo');
-      var img = new Image();   // Crée un nouvel élément img
-      img.onload = function() {
-        log('onload takepicturedemo');
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 150, 150);
-        var data = canvas.toDataURL('image/png');
-        photo.setAttribute('src', data);
-      };
-      img.onerror = function()
+    var _scannerIsRunning = false;
+    function startup()
+    {
+      log("startup!");
+      Quagga.init(
       {
-        log('onerror takepicturedemo');
-      };
-      img.src = '/public/sample01.jpg';
-    }
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            //target: document.getElementById('camera'), ===> not working ???
+            constraints: {
+                width: 480,
+                height: 320,
+                facingMode: "environment"
+            },
+        },
+        decoder: {
+            readers: [
+                "code_128_reader",
+                "ean_reader",
+                "ean_8_reader",
+                "code_39_reader",
+                "code_39_vin_reader",
+                "codabar_reader",
+                "upc_reader",
+                "upc_e_reader",
+                "i2of5_reader"
+            ],
+            debug: {
+                showCanvas: true,
+                showPatches: true,
+                showFoundPatches: true,
+                showSkeleton: true,
+                showLabels: true,
+                showPatchLabels: true,
+                showRemainingPatchLabels: true,
+                boxFromPatches: {
+                    showTransformed: true,
+                    showTransformedBox: true,
+                    showBB: true
+                }
+            }
+        },
+      },
+      function (err)
+      {
+        log("Quagga Event Error");
+        if (err) {
+            log(err);
+            return;
+        }
 
-    // Capture a photo by fetching the current contents of the video
-    // and drawing it into a canvas, then converting that to a PNG
-    // format data URL. By drawing it on an offscreen canvas and then
-    // drawing that to the screen, we can change its size and/or apply
-    // other changes before drawing it.
-  
-    function takepicture() {
-      var context = canvas.getContext('2d');
-      if (width && height) {
-        canvas.width = width;
-        canvas.height = height;
-        context.drawImage(video, 0, 0, width, height);
-      
-        var data = canvas.toDataURL('image/png');
-        photo.setAttribute('src', data);
-      } else {
-        clearphoto();
-      }
-    }
-  
+        log("Quagga Initialization finished. Ready to start");
+        Quagga.start();
+
+        _scannerIsRunning = true;
+      }); // end of init Quagga
+
+      Quagga.onProcessed(function (result) {
+        var drawingCtx = Quagga.canvas.ctx.overlay,
+        drawingCanvas = Quagga.canvas.dom.overlay;
+
+        if (result) {
+            if (result.boxes) {
+                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                result.boxes.filter(function (box) {
+                    return box !== result.box;
+                }).forEach(function (box) {
+                    Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "green", lineWidth: 2 });
+                });
+            }
+
+            if (result.box) {
+                Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "#00F", lineWidth: 2 });
+            }
+
+            if (result.codeResult && result.codeResult.code) {
+                Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, drawingCtx, { color: 'red', lineWidth: 3 });
+            }
+        }
+      }); // end of Quagga onProcess
+
+      Quagga.onDetected(function (result) {
+          log("Barcode detected and processed : [" + result.codeResult.code + "]", result);          
+          Quagga.stop();
+          _scannerIsRunning = false;
+      });
+    }  // end of startup
+
+    // Start/stop scanner
+    document.getElementById("btnScan").addEventListener("click", 
+      function () {
+        if (_scannerIsRunning) {
+          log("stop Quagga from button");
+          Quagga.stop();
+        } else {
+          log("start Quagga from button");
+          Quagga.start();
+        }
+      },
+      false
+    );
+
     // Set up our event listener to run the startup process
     // once loading is complete.
     window.addEventListener('load', startup, false);
-  })();
+  }    
+)();
